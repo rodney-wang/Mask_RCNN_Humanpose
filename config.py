@@ -41,7 +41,7 @@ class Config(object):
     # Validation stats are also calculated at each epoch end and they
     # might take a while, so don't set this too small to avoid spending
     # a lot of time on validation stats.
-    STEPS_PER_EPOCH = 1000
+    STEPS_PER_EPOCH = 5000
 
     # Number of validation steps to run at the end of every training epoch.
     # A bigger number improves accuracy of validation stats, but slows
@@ -54,6 +54,8 @@ class Config(object):
 
     # Number of classification classes (including background)
     NUM_CLASSES = 1  # Override in sub-classes
+
+    NUM_KEYPOINTS = 17 #Override in sub-classes
 
     # Length of square anchor side in pixels
     RPN_ANCHOR_SCALES = (32, 64, 128, 256, 512)
@@ -161,7 +163,7 @@ class Config(object):
 
     def display(self):
         """Display Configuration values."""
-        print("\nConfigurations:")
+        print("\nConfigurations Superlee:")
         for a in dir(self):
             if not a.startswith("__") and not callable(getattr(self, a)):
                 print("{:30} {}".format(a, getattr(self, a)))

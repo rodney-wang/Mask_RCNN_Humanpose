@@ -1,4 +1,3 @@
-Please refer to the new repositpy [Mask_RCNN_Human_Pose][1] , then you can post your questions below. This repositpy won't be maintained.
 Mask RCNN for Human Pose Estimation
 -----------------------------------
 
@@ -20,7 +19,7 @@ When I start it, I refer to another project by [@RodrigoGantier][3] .
 * [train_humanpose.ipynb][7] shows how to train the model step by step. You can also use "python train_humanpose.py" to  start training.
 * [inspect_humanpose.ipynb][8] visulizes the proposal target keypoints to check it's validity. It also outputs some innner layers to help us debug the model.
 
-#Discussion
+# Discussion
 * I convert the joint coordinates into an integer label ([0, 56*56)), and use  `tf.nn.sparse_softmax_cross_entropy_with_logits` as the loss function. This refers to the original [Detectron code][9] which is key reason why my loss can converge quickly.
 * If you still want to use the keypoint mask as output, you'd better adopt the modified loss function proposed by [@QtSignalProcessing][10] in [issue#2][11]. Because after crop and resize, the keypoint masks may hava more than one 1 values, and this will make the original soft_cross entropy_loss hard to converge.
 * Althougth the loss converge quickly, the prediction results isn't as good as the oringal papers, especially for right or left shoulder, right or left knee, etc. I'm confused with it, so I release the code and any contribution or suggestion to this repository is welcome.

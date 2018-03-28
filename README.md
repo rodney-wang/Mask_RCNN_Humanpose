@@ -15,7 +15,7 @@ When I start it, I refer to another project by [@RodrigoGantier][3] .
 * Jupyter Notebook
 * Numpy, skimage, scipy, Pillow, cython, h5py
 # Getting Started
-* [inference_humanpose.ipynb][6] shows how to predict the keypoint of human using my trained model. It randomly chooses a image from the validation set. You can download pre-trained COCO weights for human pose estimation (mask_rcnn_coco_humanpose.h5) from the releases page.
+* [inference_humanpose.ipynb][6] shows how to predict the keypoint of human using my trained model. It randomly chooses a image from the validation set. You can download pre-trained COCO weights for human pose estimation (mask_rcnn_coco_humanpose.h5) from the releases page (https://github.com/Superlee506/Mask_RCNN_Humanpose/releases).
 * [train_humanpose.ipynb][7] shows how to train the model step by step. You can also use "python train_humanpose.py" to  start training.
 * [inspect_humanpose.ipynb][8] visulizes the proposal target keypoints to check it's validity. It also outputs some innner layers to help us debug the model.
 

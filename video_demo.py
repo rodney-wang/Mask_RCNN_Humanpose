@@ -15,7 +15,7 @@ COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco_humanpose.h5")
 class InferenceConfig(coco.CocoConfig):
     GPU_COUNT = 1
     IMAGES_PER_GPU = 1
-    KEYPOINT_MASK_POOL_SIZE = 17
+    KEYPOINT_MASK_POOL_SIZE = 7
 
 inference_config = InferenceConfig()
 

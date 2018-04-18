@@ -283,11 +283,11 @@ def display_image_keypoint_mask(image, boxes, keypoints, keypoint_weight, class_
 
 
 def display_keypoints(image, boxes, keypoints, class_ids, class_names,
-                      skeleton = None, scores=None, title="",
+                      skeleton = [], scores=None, title="",
                       figsize=(16, 16), ax=None):
     """
     boxes: [num_persons, (y1, x1, y2, x2)] in image coordinates.
-    keypoints: [num_persons, 3]
+    keypoints: [num_persons, num_keypoint, 3]
     class_ids: [num_persons]
     class_names: list of class names of the dataset
     scores: (optional) confidence scores for each box
@@ -295,6 +295,8 @@ def display_keypoints(image, boxes, keypoints, class_ids, class_names,
     """
     # Number of persons
     N = boxes.shape[0]
+    keypoints = np.array(keypoints).astype(int)
+    print("keypoint_shape:", np.shape(keypoints))
     if not N:
         print("\n*** No persons to display *** \n")
     else:
@@ -340,19 +342,31 @@ def display_keypoints(image, boxes, keypoints, class_ids, class_names,
                 circle = patches.Circle((Joint[0],Joint[1]),radius=1,edgecolor=color,facecolor='none')
                 ax.add_patch(circle)
 
-        # Skeleton: 19*2
-        if(skeleton != None):
-            for connection in skeleton:
-                joint_start, joint_end = connection - 1  # connection stats from 1 to 17
-
-                Joint_start = keypoints[i][joint_start]
-                Joint_end = keypoints[i][joint_end]
+        # Skeleton: 11*2
+        limb_colors = [[0, 0, 255], [0, 170, 255], [0, 255, 170], [0, 255, 0], [170, 255, 0],
+                  [255, 170, 0], [255, 0, 0], [255, 0, 170], [170, 0, 255], [170,170,0],[170,0,170]]
+        if(len(skeleton)):
+            skeleton = np.reshape(skeleton,(-1,2))
+            neck = np.array((keypoints[i, 5, :] + keypoints[i,6,:])/2).astype(int)
+            if(keypoints[i, 5, 2] == 0 or keypoints[i,6,2] == 0):
+                neck = [0,0,0]
+            limb_index = -1
+            for limb in skeleton:
+                limb_index += 1
+                start_index, end_index = limb  # connection joint index from 0 to 16
+                if(start_index == -1):
+                    Joint_start = neck
+                else:
+                    Joint_start = keypoints[i][start_index]
+                if(end_index == -1):
+                    Joint_end = neck
+                else:
+                    Joint_end = keypoints[i][end_index]
                 # both are Annotated
                 # Joint:(x,y,v)
                 if ((Joint_start[2] != 0) & (Joint_end[2] != 0)):
                     # print(color)
-
-                    cv2.line(skeleton_image, tuple(Joint_start[:2]), tuple(Joint_end[:2]), [x * 255 for x in color])
+                    cv2.line(skeleton_image, tuple(Joint_start[:2]), tuple(Joint_end[:2]), limb_colors[limb_index],5)
     ax.imshow(skeleton_image.astype(np.uint8))
     plt.show()
 

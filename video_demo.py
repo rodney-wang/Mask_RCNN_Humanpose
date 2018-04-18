@@ -32,7 +32,7 @@ print("Loading weights from ", model_path)
 model.load_weights(model_path, by_name=True)
 
 class_names = ['BG', 'person']
-def cv2_display_keypoint(image,boxes,keypoints,masks,class_ids,scores,class_names):
+def cv2_display_keypoint(image,boxes,keypoints,masks,class_ids,scores,class_names,skeleton = inference_config.LIMBS):
     # Number of persons
     N = boxes.shape[0]
     if not N:
@@ -52,6 +52,32 @@ def cv2_display_keypoint(image,boxes,keypoints,masks,class_ids,scores,class_name
         for Joint in keypoints[i]:
             if (Joint[2] != 0):
                 cv2.circle(image,(Joint[0], Joint[1]), 2, color, -1)
+
+        #draw skeleton connection
+        limb_colors = [[0, 0, 255], [0, 170, 255], [0, 255, 170], [0, 255, 0], [170, 255, 0],
+                       [255, 170, 0], [255, 0, 0], [255, 0, 170], [170, 0, 255], [170, 170, 0], [170, 0, 170]]
+        if (len(skeleton)):
+            skeleton = np.reshape(skeleton, (-1, 2))
+            neck = np.array((keypoints[i, 5, :] + keypoints[i, 6, :]) / 2).astype(int)
+            if (keypoints[i, 5, 2] == 0 or keypoints[i, 6, 2] == 0):
+                neck = [0, 0, 0]
+            limb_index = -1
+            for limb in skeleton:
+                limb_index += 1
+                start_index, end_index = limb  # connection joint index from 0 to 16
+                if (start_index == -1):
+                    Joint_start = neck
+                else:
+                    Joint_start = keypoints[i][start_index]
+                if (end_index == -1):
+                    Joint_end = neck
+                else:
+                    Joint_end = keypoints[i][end_index]
+                # both are Annotated
+                # Joint:(x,y,v)
+                if ((Joint_start[2] != 0) & (Joint_end[2] != 0)):
+                    # print(color)
+                    cv2.line(image, tuple(Joint_start[:2]), tuple(Joint_end[:2]), limb_colors[limb_index],5)
         mask = masks[:, :, i]
         image = visualize.apply_mask(image, mask, color)
         caption = "{} {:.3f}".format(class_names[class_ids[i]], scores[i])

@@ -6,6 +6,10 @@ import visualize
 from model import log
 import cv2
 import time
+from skimage.io import imread_collection
+import json
+import pickle
+import gzip
 
 ROOT_DIR = os.getcwd()
 # Directory to save logs and trained model
@@ -86,17 +90,32 @@ def cv2_display_keypoint(image,boxes,keypoints,masks,class_ids,scores,class_name
     return image
 
 
-"""
-cap = cv2.VideoCapture(0)
-while(1):
-    # get a frame
-    ret, frame = cap.read()
-    "BGR->RGB"
-    rgb_frame = frame[:,:,::-1]
+
+col = imread_collection('/home/administrator/data/aibee/frames/*.png')
+arrays = [i for i in col]
+frames= np.stack(arrays, axis=0)
+log("All frames", frames)
+#frame = cv2.imread('images/000000000872.jpg')
+#frame = cv2.imread('images/00004.png')
+
+fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+cap_out = cv2.VideoWriter('/home/administrator/data/aibee/wcc_ch04_180707_47s.avi', fourcc, 25, (1920, 1080)) #(1080, 1920))
+
+#Write results to JSON
+vis=True
+dets = []
+nf, nh, nw, nc = frames.shape
+detection_all=[]
+for k in range(nf):
+
+    frame = frames[k, ...]
+    #rgb_frame = frame[:,:,::-1]
     print(np.shape(frame))
     # Run detection
     t = time.time()
-    results = model.detect_keypoint([rgb_frame], verbose=0)
+    #results = model.detect_keypoint([rgb_frame], verbose=0)
+    results = model.detect_keypoint([frame], verbose=0)
+
     # show a frame
     t = time.time() - t
     print(1.0 / t)
@@ -107,35 +126,41 @@ while(1):
     log("keypoints", r['keypoints'])
     log("masks", r['masks'])
     log("scores", r['scores'])
-    result_image = cv2_display_keypoint(frame,r['rois'],r['keypoints'],r['masks'],r['class_ids'],r['scores'],class_names)
 
-    cv2.imshow('Detect image', result_image)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-cap.release()
-cv2.destroyAllWindows()
-"""
+    if vis:
+        result_image = cv2_display_keypoint(frame, r['rois'], r['keypoints'], r['masks'], r['class_ids'], r['scores'],
+                                            class_names)
+        #cv2.imshow('Detect image', result_image)
+        cap_out.write(result_image)
 
-#frame = cv2.imread('images/000000000872.jpg')
-frame = cv2.imread('images/00004.png')
-print(frame.shape)
-rgb_frame = frame[:,:,::-1]
-print(np.shape(frame))
-# Run detection
-t = time.time()
-results = model.detect_keypoint([rgb_frame], verbose=0)
-# show a frame
-t = time.time() - t
-print(1.0 / t)
-r = results[0]  # for one image
-log("rois", r['rois'])
-log("keypoints", r['keypoints'])
-log("class_ids", r['class_ids'])
-log("keypoints", r['keypoints'])
-log("masks", r['masks'])
-log("scores", r['scores'])
-result_image = cv2_display_keypoint(frame,r['rois'],r['keypoints'],r['masks'],r['class_ids'],r['scores'],class_names)
+        #cv2.waitKey(0)
+        #cv2.destroyAllWindows()
 
-cv2.imshow('Detect image', result_image)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+
+    frameIndex = k+1175
+
+    for hh in range(len(r['class_ids'])):
+        result = {}
+        result['frame_index'] = frameIndex
+        result['human_detector_score'] = float(r['scores'][hh])
+        result["human_box_y"]           = float(r['rois'][hh, 0])
+        result["human_box_x"]           = float(r['rois'][hh, 1])
+        result["human_box_height"]      = float(r['rois'][hh, 2] -r['rois'][hh, 0])
+        result["human_box_width"]       = float(r['rois'][hh, 3] -r['rois'][hh, 1])
+        result["frame_time_stamp"]= 49000.000000
+        print(result)
+        dets.append(result.copy())
+
+    #detection_all.append(r)
+cap_out.release()
+#with open('/home/administrator/data/aibee/wcc_ch04_20180707_47s_detection_maskrcnn_with_pose.json', 'w') as outfile:
+#        json.dump(dets, outfile, indent=4)
+
+out_pkl_name='/home/administrator/data/aibee/maskrcnn_pose_wcc_ch04_0707.pklz'
+fp = gzip.open(out_pkl_name, 'wb')
+pickle.dump(detection_all, fp)
+fp.close( )
+#LOAD example
+#f = gzip.open(fname,'rb')
+#myNewObject = pickle.load(f)
+#f.close()
